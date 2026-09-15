@@ -2,10 +2,16 @@ name: Checks
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   go:
@@ -28,8 +34,11 @@ jobs:
         with:
           node-version: 24
 
-      # The same check the house rules ask for before a pull request, so the
-      # workflow cannot drift away from the scripts it is meant to enforce.
+      # The repository's own all-in-one check (`npm run all` — fmt, vet, test,
+      # build), so the workflow runs the same commands a developer runs. Its
+      # "test" step is the unit suites: `go test ./...`. The integration suites
+      # need `-tags integration` and live credentials, so they stay out of a
+      # pull-request gate.
       - name: Format, vet, test and build
         run: npm run all
 
