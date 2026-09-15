@@ -79,7 +79,7 @@ For a frontend, from its own directory: `bun install && bun run dev`.
 
 ## Contributing
 
-Branches are lowercase with hyphens, history stays linear, and commits follow Conventional Commits without scopes. Run `npm run all` before opening a pull request. [AGENTS.md](AGENTS.md) holds the full conventions, with the coding, testing and writing guides under `.agents/skills`.
+Branches are lowercase with hyphens, history stays linear, and commits follow Conventional Commits without scopes. Before opening a pull request run `go fmt ./...` and `go vet ./...` — or `npm run all`, which runs those two and then the tests and both builds. [AGENTS.md](AGENTS.md) holds the full conventions, with the coding, testing and writing guides under `.agents/skills`.
 
 ## License
 
