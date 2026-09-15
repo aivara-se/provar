@@ -1,6 +1,6 @@
 //go:build integration
 
-package __tests__
+package integration
 
 import (
 	"context"
@@ -12,30 +12,31 @@ import (
 )
 
 const (
-	defaultGoogleModel = "gemini-3.7-flash"
-	envGoogleAPIKey    = "GEMINI_API_KEY"
-	envGoogleModel     = "GEMINI_API_MODEL"
-	skipGoogleMsg      = "skipping Google integration test; credentials not set"
+	defaultAnthropicModel = "claude-sonnet-5"
+	envAnthropicAPIKey    = "ANTHROPIC_API_KEY"
+	envAnthropicModel     = "ANTHROPIC_API_MODEL"
+	envAnthropicBaseURL   = "ANTHROPIC_API_URL"
+	skipAnthropicMsg      = "skipping Anthropic integration test; credentials not set"
 )
 
-func TestGoogleClient_Integration(t *testing.T) {
-	apiKey, model, baseURL := resolveProviderConfig(domain.ProviderGoogle, envGoogleAPIKey, envGoogleModel, "", defaultGoogleModel)
+func TestAnthropicClient_Integration(t *testing.T) {
+	apiKey, model, baseURL := resolveProviderConfig(domain.ProviderAnthropic, envAnthropicAPIKey, envAnthropicModel, envAnthropicBaseURL, defaultAnthropicModel)
 	if apiKey == "" {
-		t.Skip(skipGoogleMsg)
+		t.Skip(skipAnthropicMsg)
 	}
-	client, err := models.NewClient(models.Google, apiKey, baseURL, model)
+	client, err := models.NewClient(models.Anthropic, apiKey, baseURL, model)
 	if err != nil {
-		t.Fatalf("failed to create Google client: %v", err)
+		t.Fatalf("failed to create Anthropic client: %v", err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), integrationTimeout)
 	defer cancel()
 	session, err := client.CreateSession(ctx, "")
 	if err != nil {
-		t.Fatalf("failed to create Google session: %v", err)
+		t.Fatalf("failed to create Anthropic session: %v", err)
 	}
 	err = session.Send(ctx, []models.Attachment{{Type: models.AttachmentTypeText, Text: testPrompt}})
 	if err != nil {
-		t.Fatalf("failed to send message to Google: %v", err)
+		t.Fatalf("failed to send message to Anthropic: %v", err)
 	}
 	var response string
 	for chunk := range session.Recv() {
@@ -46,14 +47,14 @@ func TestGoogleClient_Integration(t *testing.T) {
 	}
 }
 
-func TestGoogleClient_Integration_ToolCalling(t *testing.T) {
-	apiKey, model, baseURL := resolveProviderConfig(domain.ProviderGoogle, envGoogleAPIKey, envGoogleModel, "", defaultGoogleModel)
+func TestAnthropicClient_Integration_ToolCalling(t *testing.T) {
+	apiKey, model, baseURL := resolveProviderConfig(domain.ProviderAnthropic, envAnthropicAPIKey, envAnthropicModel, envAnthropicBaseURL, defaultAnthropicModel)
 	if apiKey == "" {
-		t.Skip(skipGoogleMsg)
+		t.Skip(skipAnthropicMsg)
 	}
-	client, err := models.NewClient(models.Google, apiKey, baseURL, model)
+	client, err := models.NewClient(models.Anthropic, apiKey, baseURL, model)
 	if err != nil {
-		t.Fatalf("failed to create Google client: %v", err)
+		t.Fatalf("failed to create Anthropic client: %v", err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), integrationTimeout)
 	defer cancel()
@@ -62,18 +63,18 @@ func TestGoogleClient_Integration_ToolCalling(t *testing.T) {
 	tool := &secretTool{code: secretCode, called: &toolCalled}
 	session, err := client.CreateSession(ctx, "", tool)
 	if err != nil {
-		t.Fatalf("failed to create Google session: %v", err)
+		t.Fatalf("failed to create Anthropic session: %v", err)
 	}
 	err = session.Send(ctx, []models.Attachment{{Type: models.AttachmentTypeText, Text: toolPromptSecret}})
 	if err != nil {
-		t.Fatalf("failed to send message to Google: %v", err)
+		t.Fatalf("failed to send message to Anthropic: %v", err)
 	}
 	var response string
 	for chunk := range session.Recv() {
 		response += chunk
 	}
 	if !toolCalled {
-		t.Error("expected tool to be executed by Google session")
+		t.Error("expected tool to be executed by Anthropic session")
 	}
 	if !strings.Contains(response, secretCode) {
 		t.Errorf("expected response to contain %q, but got %q", secretCode, response)
