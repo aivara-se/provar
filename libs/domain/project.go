@@ -108,7 +108,33 @@ const (
 
 	sampleConfigYML = "variables:\n  baseUrl: https://demo.thani.sh/\n"
 	emptyConfigYML  = "variables:\n  baseUrl: http://127.0.0.1:3000\n"
-	sampleLoginYML  = "- id: open_login_page\n  name: Open Login Page\n  info: Navigate to the demo login page\n- id: enter_credentials\n  name: Enter Credentials\n  info: Enter the demo credentials\n- id: click_login\n  name: Click Login\n  info: Click the submit button\n- id: verify_dashboard\n  name: Verify Dashboard\n  info: Verify the dashboard loaded\n"
+
+	// sampleLoginYML is the file `provar setup --sample` writes. The actions carry
+	// explicit Next edges rather than relying on positional order: the editor
+	// canvas synthesises implicit position edges for a flat list, but the
+	// validator's reachability pass only follows declared edges, so a flat sample
+	// reported every action after the first as unreachable. The shape here matches
+	// what SaveFile marshals (next: [] on a terminal action) so loading the sample
+	// in the editor and saving it again is byte-stable.
+	sampleLoginYML = "- id: open_login_page\n" +
+		"  name: Open Login Page\n" +
+		"  info: Navigate to the demo login page\n" +
+		"  next:\n" +
+		"    - enter_credentials\n" +
+		"- id: enter_credentials\n" +
+		"  name: Enter Credentials\n" +
+		"  info: Enter the demo credentials\n" +
+		"  next:\n" +
+		"    - click_login\n" +
+		"- id: click_login\n" +
+		"  name: Click Login\n" +
+		"  info: Click the submit button\n" +
+		"  next:\n" +
+		"    - verify_dashboard\n" +
+		"- id: verify_dashboard\n" +
+		"  name: Verify Dashboard\n" +
+		"  info: Verify the dashboard loaded\n" +
+		"  next: []\n"
 
 	// gitignore is written next to the project so a freshly-set-up directory
 	// is Git-clean from the first commit. Two rules:

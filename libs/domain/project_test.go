@@ -466,6 +466,55 @@ func TestInitProject_Sample(t *testing.T) {
 	}
 }
 
+// TestInitProject_SampleValidates locks in that the scaffolded sample passes its
+// own validation with no diagnostics: it ships explicit Next edges, because the
+// validator's reachability pass only follows declared edges.
+func TestInitProject_SampleValidates(t *testing.T) {
+	tempDir := t.TempDir()
+	target := filepath.Join(tempDir, "myproj")
+	if err := InitProject(target, true, false); err != nil {
+		t.Fatalf("InitProject returned error: %v", err)
+	}
+	relPath := filepath.Join(testsSubdir, "login.test.yml")
+	actions, err := ParseFile(target, relPath)
+	if err != nil {
+		t.Fatalf("ParseFile: %v", err)
+	}
+	report := File{Path: relPath, Actions: actions}.Validate()
+	if len(report.Errors) != 0 || len(report.Warnings) != 0 {
+		t.Errorf("sample produced diagnostics: errors=%v warnings=%v", report.Errors, report.Warnings)
+	}
+	if !report.IsValid {
+		t.Error("expected the sample report to be valid")
+	}
+}
+
+// TestInitProject_SampleRoundTrips locks in that the sample's bytes are what
+// SaveFile writes back for the same actions, so opening the sample in the
+// editor and saving it produces no diff.
+func TestInitProject_SampleRoundTrips(t *testing.T) {
+	tempDir := t.TempDir()
+	target := filepath.Join(tempDir, "myproj")
+	if err := InitProject(target, true, false); err != nil {
+		t.Fatalf("InitProject returned error: %v", err)
+	}
+	relPath := filepath.Join(testsSubdir, "login.test.yml")
+	actions, err := ParseFile(target, relPath)
+	if err != nil {
+		t.Fatalf("ParseFile: %v", err)
+	}
+	if err := SaveFile(target, relPath, actions); err != nil {
+		t.Fatalf("SaveFile: %v", err)
+	}
+	data, err := os.ReadFile(filepath.Join(target, relPath))
+	if err != nil {
+		t.Fatalf("read saved sample: %v", err)
+	}
+	if string(data) != sampleLoginYML {
+		t.Errorf("sample is not round-trip stable:\nsaved:\n%s\nconstant:\n%s", string(data), sampleLoginYML)
+	}
+}
+
 func TestInitProject_ExistingNoForce(t *testing.T) {
 	tempDir := t.TempDir()
 	target := filepath.Join(tempDir, "myproj")
