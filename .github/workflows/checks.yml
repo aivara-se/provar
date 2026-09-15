@@ -1,0 +1,75 @@
+name: Checks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Format, vet, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      # The same check the house rules ask for before a pull request, so the
+      # workflow cannot drift away from the scripts it is meant to enforce.
+      - name: Format, vet, test and build
+        run: npm run all
+
+      # Formatting is the one step `npm run all` cannot check: `go fmt` rewrites
+      # files instead of reporting them, so the tree has to be inspected after it.
+      - name: Formatting is committed
+        run: |
+          go fmt ./...
+          if ! git diff --exit-code; then
+            echo "::error::go fmt rewrote the files above — run 'npm run fmt' and commit the result."
+            exit 1
+          fi
+
+  website:
+    name: Website checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: apps/provar-web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check formatting
+        run: bun run lint
+
+      - name: Type check
+        run: bun run check
+
+  # The desktop editor's frontend is not checked here yet: `bun run check` in
+  # apps/provar-app/frontend reports seven type errors on main (stale store
+  # fields in Canvas.svelte, a DoctorCheck import from the wrong module, and a
+  # severity widened to string in file-service.ts). It joins this job once those
+  # are fixed, so the editor cannot drift further in the meantime.
