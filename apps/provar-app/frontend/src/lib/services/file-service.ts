@@ -61,7 +61,11 @@ export class FileService {
     view?: TestFileView,
   ): Promise<import('../domain/types').DiagnosticReport> {
     try {
-      return await File.Validate(projectPath, relPath, view as any);
+      const report = await File.Validate(projectPath, relPath, view as any);
+      // The generated binding widens severity and code to plain strings while the
+      // local mirror narrows them to unions. The values come from Go, which only
+      // emits those two severities, so the boundary cast is safe.
+      return report as unknown as import('../domain/types').DiagnosticReport;
     } catch (e) {
       console.error('FileService: validate failed:', e);
       return { isValid: true, errors: [], warnings: [] };

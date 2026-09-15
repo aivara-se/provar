@@ -23,7 +23,7 @@
     try {
       await canvas.init(container);
       if (editorStore.currentFile) {
-        canvas.renderGraph(editorStore.currentFile, executionStore.actionStates, editorStore.diagnostics);
+        canvas.renderGraph(editorStore.currentFile, executionStore.taskStates, editorStore.diagnostics);
       }
     } catch (e) {
       console.error("Canvas init failed:", e);
@@ -34,17 +34,17 @@
     const file = editorStore.currentFile;
     const diagnostics = editorStore.diagnostics;
     if (canvas && file) {
-      canvas.renderGraph(file, executionStore.actionStates, diagnostics);
+      canvas.renderGraph(file, executionStore.taskStates, diagnostics);
     }
   });
 
   $effect(() => {
-    const states = executionStore.actionStates;
-    const path = executionStore.runningPathNodeIds;
-    const compile = executionStore.compilationStates;
+    const states = executionStore.taskStates;
+    const compile = executionStore.compileStates;
     const diagnostics = editorStore.diagnostics;
     if (canvas) {
-      canvas.updateGraphState(states, path, compile, diagnostics);
+      // TODO: nothing tracks the running path yet, so the canvas gets an empty set.
+      canvas.updateGraphState(states, new Set(), compile, diagnostics);
     }
   });
 
