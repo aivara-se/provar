@@ -2,8 +2,10 @@
   import { applicationStore } from '../../stores/application-store.svelte';
   import { projectStore } from '../../stores/project-store.svelte';
   import { Doctor } from '../../services/bindings';
-  import type { DoctorCheck } from '../../../../wailsjs/go/bindings/Doctor';
+  import type { bindings } from '../../../../wailsjs/go/models';
   import { X, CheckCircle, XCircle, AlertTriangle, Loader } from 'lucide-svelte';
+
+  type DoctorCheck = bindings.DoctorCheck;
 
   type CheckState = 'pending' | 'running' | DoctorCheck;
 
