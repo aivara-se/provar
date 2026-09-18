@@ -9,6 +9,7 @@ import (
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/shared"
 	"github.com/thani-sh/provar/libs/logger"
 )
 
